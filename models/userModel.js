@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator')
+const bcrypt = require('bcrypt')
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -53,6 +54,34 @@ const userSchema = new mongoose.Schema({
     }
 
 })
+
+// Membuat function yang akan dijalankan sebelum proses user.save()
+userSchema.pre('save', async function (next) {
+    // Data yang masuk dari inputan user
+    let user = this
+
+    // Hashing Password
+    user.password = await bcrypt.hash(user.password, 8)
+
+    // Menjalankan save
+    next()
+})
+
+// Create Login Function
+userSchema.statics.login = async(email, password) => {
+    // Mencari user bedasarkan email 
+    let user = await User.findOne({email}) 
+    // Jika user tidak di temukan 
+    if (!user) {
+        throw new Error("E-mail tidak ditemukan")
+    }
+    // Membandingkan password inputan dari user dengan dari database, mengeluarkan hasil True or False
+    let result = await bcrypt.compare(password, user.password)
+    if (!result) {
+        throw new Error('Password salah !')
+    }
+    return user
+}
 
 const User = mongoose.model('User', userSchema)
 module.exports = User

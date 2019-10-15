@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const User = require('./models/userModel')
+const Task = require('./models/taskModel')
 
 const app = express()
 const port = 2007
@@ -75,3 +76,27 @@ app.patch('/users/update/:byID', async (req, res) => {
         res.send(error)
     }
 })
+
+// LOGIN USER WITH EMAIL & PASSWORD
+app.post('/users/login', async (req, res) => {
+    try {
+        let user = await User.login(req.body.email, req.body.password)
+        res.send(user)
+    } catch (error) {
+        res.send(error.message)
+    }
+})
+
+// T A S K  R O U T E R
+
+// CREATE TASK
+app.post('/task', async (req, res) => {
+    try {
+        let task = new Task(req.body)
+        let resp = await task.save()
+        res.send(resp)
+    } catch(err){
+        res.send(err.message)
+    }
+})
+// UPDATE TASK
